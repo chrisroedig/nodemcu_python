@@ -1,0 +1,9 @@
+source bin/env
+echo -e "\n${BOLD}Downloading MicroPython Firmware${NC}"
+curl $MICROPYTHON_URL > tmp/micro_python.bin
+
+echo -e "\n${BOLD}Erasing ESP8266 Flash${NC}"
+esptool.py --port $NODEMCU_PORT erase_flash
+
+echo -e "\n${BOLD}Uploading Micropython to ESP8266 Flash${NC}"
+esptool.py --port $NODEMCU_PORT --baud 460800 write_flash --flash_size=detect 0 tmp/micro_python.bin

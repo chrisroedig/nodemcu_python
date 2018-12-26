@@ -1,0 +1,6 @@
+source bin/env
+echo -e "\n${BOLD}Connecting nodemcu python REPL...${NC}"
+echo -e "[${BLUE}INFO${NC}] to exit, ctrl-a, then ctrl-x\n"
+sleep 1
+picocom $NODEMCU_PORT -b115200
+echo -e "\n[${BLUE}INFO${NC}] ALL DONE!\n"

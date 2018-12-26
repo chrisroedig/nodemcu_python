@@ -1,0 +1,48 @@
+# https://en.wikipedia.org/wiki/ANSI_escape_code SGR parameters
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[1;36m'
+BOLD='\033[0;1m'
+NC='\033[0m'
+
+echo -e "\n${BOLD}Loading environment, checking dependnecies${NC}"
+
+if [ ! -e .env ]; then
+  echo -e "[${RED}ERR${NC}] Environment file is not set up"
+  echo -e 'expected: .env, see .env.example for more info\n'
+  exit
+fi
+source .env
+echo -e "[${GREEN} OK ${NC}] Environment vars loaded"
+
+if [ ! -e `echo $NODEMCU_PORT` ]; then
+  echo -e "[${RED}ERR${NC} ] port $NODEMCU_PORT not found!\n"
+  exit
+fi
+echo -e "[${GREEN} OK ${NC}] PORT: ${BOLD}$NODEMCU_PORT${NC}"
+
+if  ! [ -x "$(command -v picocom)" ]; then
+  echo -e "[${RED}ERR${NC} ] picocom is required but not installed on this system!"
+  echo -e "please install picocom and try again, https://github.com/npat-efault/picocom\n"
+  exit
+fi
+echo -e "[${GREEN} OK ${NC}] picocom installed"
+
+if  ! [ -x "$(command -v ampy)" ]; then
+  echo -e "[${RED}ERR${NC} ] ampy is required but not installed here!"
+  echo -e "please install ampy (python package) and try again, https://github.com/adafruit/ampy\n"
+  exit
+fi
+echo -e "[${GREEN} OK ${NC}] ampy installed"
+
+if ! [ -x "$(command -v esptool.py)" ]; then
+  echo -e "[${RED}ERR${NC} ] esptool is required but not installed here!"
+  echo -e "please install esptool (python package) and try again, https://github.com/espressif/esptool\n"
+  exit
+fi
+echo -e "[${GREEN} OK ${NC}] esptool installed"
+
+if [ ! -d "tmp" ]; then
+  echo -e "[${BOLD}....${NC}] creating tmp directory"
+  mkdir tmp
+fi

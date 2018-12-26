@@ -1,0 +1,30 @@
+source bin/env
+
+rm tmp/wifi_config.json
+WIFI_CONFIG="{ \"ssid\": \"${WIFI_SSID}\", \"passphrase\": \"${WIFI_PASSPHRASE}\" }"
+echo $WIFI_CONFIG > tmp/wifi_config.json
+
+echo -e "\n${BOLD}Uploading code to board${NC}"
+ampy -p$NODEMCU_PORT rm main.py
+ampy -p$NODEMCU_PORT rmdir support
+ampy -p$NODEMCU_PORT rmdir app
+ampy -p$NODEMCU_PORT put platform/support support
+ampy -p$NODEMCU_PORT put app app
+ampy -p$NODEMCU_PORT put tmp/wifi_config.json support/wifi_config.json
+ampy -p$NODEMCU_PORT put platform/main.py main.py
+
+echo -e "\n${BOLD}Soft resetting board${NC}"
+ampy -p$NODEMCU_PORT reset
+
+while getopts ":r" opt; do
+  case ${opt} in
+    r )
+      echo -e "\n${BOLD}Connecting nodemcu python REPL...${NC}"
+      echo -e "[${BLUE}INFO${NC}] to exit, ctrl-a, then ctrl-x\n"
+      sleep 1
+      picocom $NODEMCU_PORT -b115200
+      ;;
+  esac
+done
+
+echo -e "\n[${BLUE}INFO${NC}] ALL DONE!\n"
