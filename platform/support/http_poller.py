@@ -55,14 +55,12 @@ class HttpPoller():
             self.state = 0
 
     def connect_socket(self):
-        print('connecting')
         ai = socket.getaddrinfo(self.host, self.port,  0, socket.SOCK_STREAM)[0]
         self.sock = socket.socket(ai[0], ai[1], ai[2])
         self.sock.connect(ai[-1])
         return True
 
     def send_request(self):
-        print('sending request')
         self.socket_send('%s /%s HTTP/1.0\r\n' % (self.method, self.path))
         for k in self.headers:
             self.socket_send(k+": "+self.headers[k]+"\r\n")
@@ -78,7 +76,6 @@ class HttpPoller():
         return True
 
     def start_response_wait(self):
-        print('waiting for response')
         self.wait_stop_time = self.time() + self.response_delay
         return True
 
@@ -91,7 +88,8 @@ class HttpPoller():
 
     def receive_response(self):
         self.sock = self.sock.makefile()
-        self.proto, self.status, self.reason = self.sock.readline().split(' ',2)
+        resp = str(self.sock.readline(), 'utf8')
+        self.proto, self.status, self.reason = resp.split(' ',2)
         self.read_headers()
         if self.response_headers.get('Transfer-Encoding') == 'chunked':
             self.read_content_chunked()
@@ -107,7 +105,6 @@ class HttpPoller():
         return True
 
     def start_poll_wait(self):
-        print('waiting for next poll')
         self.wait_stop_time = self.time() + self.poll_delay
         return True
 
@@ -120,24 +117,25 @@ class HttpPoller():
             line = self.sock.readline()
             if not line or line == b'\r\n':
                 break
-            header_pair = line.split(': ')
+            header_pair = str(line, 'utf-8').split(': ')
             if len(header_pair) < 2:
                 break
-            self.response_headers[header_pair[0]] = header_pair[1][:-1]
+            self.response_headers[header_pair[0]] = header_pair[1][:-2]
 
     def read_content_chunked(self):
         self.response_data = ''
         while True:
-            size = int('0x%s' % self.sock.readline()[:-1],16)
+            size_str = str(self.sock.readline(), 'utf8')
+            size = int('0x%s' % size_str[:-2],16)
             if size == 0:
                 break
-            self.response_data += self.sock.readline()
+            self.response_data += str(self.sock.readline(), 'utf8')
 
     def read_content(self):
         self.response_data = self.sock.read()
 
     def parse_content(self):
-        if self.response_headers['Content-Type'] == 'application/json':
+        if self.response_headers.get('Content-Type') == 'application/json':
             self.response_json = json.loads(self.response_data)
 
 ## Example
@@ -146,7 +144,7 @@ class HttpPoller():
 #     # in the setup pahse of your program
 #     poller=HttpPoller('<url here>', on_data = on_new_data)
 #     def on_new_data(data):
-#         print(data)
+#           print(data)
 #
 #     # your program's main loop
 #     while True:
