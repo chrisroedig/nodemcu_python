@@ -5,7 +5,7 @@ class Uniform():
     def __init__(self, **kwargs):
         self.pixel_count = kwargs.get('pixel_count', 32)
         self.colors = kwargs.get('colors', [(0,0,0,0), (255,255,255,255)])
-        self.gradient_steps = kwargs.get('gradient_steps', 100)
+        self.gradient_steps = kwargs.get('gradient_steps', 32)
         self.color_cache = None
         self.current_mix = 0.0
         self.neopixel = kwargs.get('neopixel')
@@ -33,6 +33,7 @@ class Uniform():
 
     def fixed_color(self, mix):
         return self.color_cache[min(int(round(mix*self.gradient_steps)),self.gradient_steps-1)]
+        #return self.calc_gradient_color(mix)
 
     def calc_gradient_color(self, gradient_pos):
         n = len(self.colors)
@@ -61,27 +62,26 @@ class Wave(Uniform):
         self.period = kwargs.get('period', None)
         if self.period is None:
             self.period = math.pi
-        self.phase_steps = 100
-        self.phase_pitch = float(self.phase_steps)/(2.0*math.pi)
+        # self.phase_steps = 100
+        # self.phase_pitch = float(self.phase_steps)/(2.0*math.pi)
         self.phase = 0.0
         self.time = float(time.time())
-        self.mod_depth = .5
         if time.__name__ == 'utime':
             self.time_fn = lambda : time.ticks_ms() / 1000.0
         else:
             self.time_fn = time.time
-        self.setup()
+        # self.setup()
 
     def setup(self):
         self.theta = [ float(i) / self.period for i in range(self.pixel_count)]
-        self.amp = [
-            0.5 + self.mod_depth * math.sin(float(i)/self.phase_pitch)
-            for i in range(self.phase_steps)
-        ]
-    def pixel(self, pixel_id):
-        phase_id = int((self.phase + self.theta[pixel_id])*self.phase_pitch) % self.phase_steps
-        col = self.fixed_color(self.amp[phase_id])
-        return col
+        # self.amp = [
+        #     0.5 + self.mod_depth * math.sin(float(i)/self.phase_pitch)
+        #     for i in range(self.phase_steps)
+        # ]
+    def pixel(self, i):
+        #phase_id = int((self.phase + self.theta[pixel_id])*self.phase_pitch) % self.phase_steps
+        #col = self.fixed_color(self.amp[phase_id])
+        return self.fixed_color(0.5 + 0.5*math.sin(self.phase + float(i) / self.period))
 
     def pixels(self, start, stop=None):
         if stop is None:
